@@ -77,13 +77,14 @@ def send_message():
     message = data.get('message')
     groupId = data.get('groupId')
     username = session.get('username')  # Récupérer l'utilisateur connecté depuis la session
+    password = session.get('password')  # Récupérer l'utilisateur connecté depuis la session
 
     if not message or not username:
         print("je suis coincé ici")
         return jsonify({"message": "Données manquantes"}), 400
     
     # Ajouter les informations d'authentification dans la requête
-    auth = (username, 'password')  # Le mot de passe est celui que vous avez configuré pour cet utilisateur
+    auth = (username, password)  # Le mot de passe est celui que vous avez configuré pour cet utilisateur
 
 
     # Requête pour envoyer un message via le backend
