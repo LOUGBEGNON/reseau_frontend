@@ -1,0 +1,180 @@
+/* Reset de base pour une cohérence entre les navigateurs */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #131c21; /* Couleur de fond sombre */
+    color: white; /* Texte en blanc pour contraste */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+html, body {
+    overflow: auto; /* Assure que le défilement est possible si le contenu dépasse */
+}
+
+h1 {
+    margin-bottom: 20px;
+}
+
+/* Styles généraux pour les listes */
+#users-connected-list {
+    background-color: #2a2f32;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    width: 20vw;
+    height: 20vh;
+    overflow: hidden;
+}
+
+#users-list {
+    background-color: #2a2f32;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    width: 40vw;
+    height: 40vh;
+    overflow: hidden;
+}
+
+#group-list {
+    background-color: #2a2f32;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    width: 40vw;
+    height: 50vh;
+    overflow: hidden;
+}
+
+/* Boutons pour les groupes de discussion */
+.group-item {
+    padding: 10px;
+    background-color: #075e54; /* Couleur principale */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    margin-bottom: 10px;
+}
+
+.group-item.active {
+    background-color: #128c7e; /* Couleur pour groupe actif */
+}
+
+/* Conteneur principal de la messagerie */
+#chat-container {
+    background-color: #222e35; /* Couleur du conteneur */
+    border-radius: 10px;
+    width: 100%; /* Largeur responsive */
+    max-width: 800px; /* Largeur maximale pour les grands écrans */
+    height: 115vh; /* Ajuster la hauteur ici */
+    display: flex;
+    flex-direction: column;
+}
+
+/* En-tête de la messagerie */
+#header {
+    background-color: #2a2f32;
+    padding: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#user-info {
+    display: flex;
+    align-items: center;
+}
+
+#status-select, #update-status-btn {
+    padding: 8px 12px;
+    font-size: 14px;
+    margin-left: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#update-status-btn {
+    background-color: #ff9800;
+}
+
+#update-status-btn:hover {
+    background-color: #e68900;
+}
+
+/* Zone de messages */
+#messages {
+    flex: 1; /* Utilise tout l'espace disponible pour l'affichage des messages */
+    padding: 10px;
+    overflow-y: auto;
+    background-size: cover;
+}
+
+.message {
+    background-color: #333; /* Fond des messages */
+    color: white; /* Couleur du texte */
+    padding: 8px 12px;
+    margin: 5px 0;
+    border-radius: 10px;
+    max-width: 80%; /* Taille maximale d'un message */
+}
+
+/* Barre de saisie des messages */
+#message-bar {
+    display: flex;
+    padding: 10px;
+    background-color: #2a2f32;
+}
+
+#message {
+    flex-grow: 1;
+    border: none;
+    padding: 8px;
+    border-radius: 20px;
+    margin-right: 10px;
+    background-color: #3b4a54;
+    color: white;
+}
+
+button {
+    background-color: #075e54;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 8px 15px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #128c7e;
+}
+
+/* Répondre au changement de taille d'écran */
+@media (max-width: 768px) {
+    body {
+        flex-direction: column;
+    }
+
+    #chat-container {
+        width: 100%; /* Pleine largeur sur petits écrans */
+        height: 50vh; /* Augmente la hauteur sur petits écrans */
+        max-width: none; /* Désactivation de la largeur maximale */
+    }
+
+    #group-list, #users-connected-list {
+        width: 20vw;
+            height: 20vh;
+            overflow: hidden;
+    }
+}

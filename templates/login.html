@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion à la Messagerie Instantanée</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="login-container">
+    <h2>Connexion à la Messagerie Instantanée</h2>
+
+    <form action="/login" method="POST">
+        <div class="input-group">
+            <label for="username">Nom d'utilisateur :</label>
+            <input type="text" id="username" name="username" required><br>
+        </div>
+        <div class="input-group">
+            <label for="password">Mot de passe :</label>
+            <input type="password" id="password" name="password" required><br>
+        </div>
+        <button type="submit">Se connecter</button>
+    </form>
+</div>
+
+
+
+</body>
+</html>

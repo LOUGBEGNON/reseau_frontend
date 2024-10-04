@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messagerie Instantanée</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+
+        </style>
+</head>
+<body>
+
+<h1>Messagerie Instantanée</h1>
+
+<h1>Liste des Groupes de Discussion</h1>
+<p>Choississez un groupe de discussion</p>
+<div id="group-list">
+    <!-- La liste des groupes sera affichée ici -->
+</div>
+
+<div id="chat-container" style="display: none;">
+    <!-- Barre de discussion en haut avec l'avatar et le nom -->
+    <div id="header">
+        <div id="user-info">
+
+            <span id="username"></span>
+
+            <!-- Menu déroulant pour changer le statut -->
+            <select id="status-select" class="input-control">
+                <option value="CONNECTED">En ligne</option>
+                <option value="AWAY">Absent</option>
+                <option value="BUSY">Occupé</option>
+                <option value="OFFLINE">Hors ligne</option>
+            </select>
+            <button id="update-status-btn">Mettre à jour le statut</button>
+            <div id="user-status">
+                <strong>Statut actuel : </strong><span id="current-status">En ligne</span>
+            </div>
+        </div>
+        <div id="icons">
+            <i class="icon call"></i>
+            <i class="icon video"></i>
+            <i class="icon settings"></i>
+        </div>
+    </div>
+
+    <!-- Formulaire d'envoi des messages -->
+
+
+<!--    <div id="chat-container" style="display: none;">-->
+        <h2>Discussion dans <span id="current-group"></span></h2>
+    <input type="hidden" value="" name="current-group-id" id="current-group-id">
+        <!-- Zone des messages -->
+        <div id="messages">
+            <!-- Exemple de messages -->
+            <div class="message received"></div>
+            <div class="message sent"></div>
+            <!-- Les messages ajoutés par JS apparaîtront ici -->
+        </div>
+        <form id="message-form">
+            <div id="message-bar">
+                <i class="fas fa-paperclip"></i> <!-- Icône de pièce jointe -->
+                <input type="text" id="message" placeholder="Tapez un message..." required>
+                <button type="submit">
+                    Envoyer <i class="fas fa-paper-plane"></i> <!-- Icône d'envoi -->
+                </button>
+            </div>
+        </form>
+<!--    </div>-->
+
+</div>
+
+<h1>Liste des Utilisateurs</h1>
+
+<div id="users-list">
+    <!-- La liste des utilisateurs sera affichée ici -->
+</div>
+
+<h1>Liste des Utilisateurs Connectés</h1>
+
+<div id="users-connected-list">
+    <!-- La liste des utilisateurs conectés sera affichée ici -->
+</div>
+
+<br>
+<br>
+<div style="weight: 100px;"></div>
+<br>
+
+<script>
+    // Liste des groupes définis localement
+    const groups = [
+        { id: 'group1', name: 'Groupe 1' },
+        { id: 'group2', name: 'Groupe 2' },
+        { id: 'group3', name: 'Groupe 3' }
+    ];
+
+    // Charger les groupes localement
+    function loadGroups() {
+        const groupListDiv = document.getElementById('group-list');
+        groupListDiv.innerHTML = '';  // Vider les anciens groupes avant de recharger
+        groups.forEach(group => {
+            const groupElement = document.createElement('button'); // Utiliser 'button' au lieu de 'div'
+            groupElement.textContent = group.name;
+            groupElement.classList.add('group-item');
+            groupElement.setAttribute('data-group-id', group.id); // Ajouter l'ID du groupe
+            groupElement.addEventListener('click', function() {
+                const currentlyActive = document.querySelector('.group-item.active');
+                if (currentlyActive) {
+                    currentlyActive.classList.remove('active');
+                }
+                groupElement.classList.add('active');
+                openGroupChat(group.id, group.name);
+            });
+            groupListDiv.appendChild(groupElement);
+        });
+    }
+
+
+    // Ouvrir le chat pour le groupe sélectionné
+    function openGroupChat(groupId, groupName) {
+        document.getElementById('current-group').textContent = groupName;
+        document.getElementById('current-group-id').value = groupId;
+        document.getElementById('chat-container').style.display = 'flex';  // Afficher le conteneur de chat
+
+        loadMessagesForGroup(groupId);  // Charger les messages du groupe sélectionné
+    }
+
+
+    // Charger les groupes localement lors du chargement de la page
+    loadGroups();
+
+
+   // Fonction pour charger les messages avec authentification
+    function loadMessages() {
+        const username = "{{ username }}";  // Nom d'utilisateur
+        const password = "{{ password }}";  // Mot de passe
+
+        fetch('http://127.0.0.1:8080/api/messages/get_messages', {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Basic ' + btoa(username + ':' + password),  // Ajouter l'authentification HTTP Basic
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => {
+        console.log(response)
+            if (!response.ok) {
+                throw new Error('Erreur lors du chargement des messages');
+            }
+            return response.json();
+        })
+        .then(messages => {
+            const messagesDiv = document.getElementById('messages');
+            messagesDiv.innerHTML = '';  // Vider les anciens messages avant de recharger
+            messages.forEach(message => {
+                const messageElement = document.createElement('div');
+                messageElement.textContent = `${message.sender}: ${message.content}`;
+                messagesDiv.appendChild(messageElement);
+            });
+        })
+        .catch(error => console.error('Erreur:', error));
+    }
+
+    function loadUsers() {
+        fetch('http://127.0.0.1:8080/api/users/all', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Erreur lors du chargement des utilisateurs');
+            }
+            return response.json();
+        })
+        .then(users => {
+            const usersDiv = document.getElementById('users-list');
+            usersDiv.innerHTML = ''; // Vider la liste actuelle
+            users.forEach(user => {
+                const userElement = document.createElement('div');
+                userElement.textContent = `Nom d'utilisateur: ${user.username}, Statut: ${user.status}`;
+                usersDiv.appendChild(userElement);
+            });
+        })
+        .catch(error => console.error('Erreur:', error));
+    }
+
+    function loadConnectedUsers() {
+        fetch('http://127.0.0.1:8080/api/users/connected', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(users => {
+            const usersDiv = document.getElementById('users-connected-list');
+            usersDiv.innerHTML = '';  // Vider la liste actuelle
+            users.forEach(user => {
+                const userElement = document.createElement('div');
+                userElement.textContent = `Nom d'utilisateur: ${user.username}, Statut: ${user.status}`;
+                usersDiv.appendChild(userElement);
+            });
+        })
+        .catch(error => console.error('Erreur:', error));
+    }
+
+    // Envoyer un message et actualiser l'interface
+    document.getElementById('message-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const message = document.getElementById('message').value;
+        const groupId = document.getElementById('current-group-id').value;  // ID du groupe sélectionné
+
+        console.log("groupId")
+        console.log(groupId)
+        console.log("message")
+        console.log(message)
+        console.log("group-select")
+        // console.log(document.getElementById('group-select').value);  // Obtenir le groupe sélectionné
+
+        fetch('/send_message', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                message: message,
+                groupId: groupId,
+            })
+        }).then(response => response.json())
+          .then(data => {
+<!--              loadMessages();  // Charger à nouveau les messages après envoi-->
+              loadMessagesForGroup(groupId);  // Charger à nouveau les messages après envoi
+          });
+
+        document.getElementById('message').value = '';  // Réinitialiser le champ message
+    });
+
+    document.getElementById('update-status-btn').addEventListener('click', function() {
+        const statusSelect = document.getElementById('status-select');
+        const selectedStatus = statusSelect.value; // Obtenir le statut sélectionné
+        const username = "{{ username }}"; // Récupérer le nom d'utilisateur de la session
+
+        // Envoyer une requête POST au backend pour mettre à jour le statut
+        fetch(`http://127.0.0.1:8080/api/users/status/${username}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ status: selectedStatus })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Erreur lors de la mise à jour du statut');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log(data); // Afficher un message de succès ou une mise à jour dans l'UI
+            const statusDisplay = document.getElementById('current-status');
+            statusDisplay.textContent = `Statut actuel : ${selectedStatus}`;
+        })
+        .catch(error => {
+            console.error('Erreur:', error); // Gérer les erreurs
+        });
+    });
+
+
+    document.getElementById('group-list').addEventListener('change', function() {
+        const groupId = this.value;
+        document.getElementById('current-group').textContent = groupId;
+        loadMessagesForGroup(groupId);  // Charger les messages du groupe sélectionné
+    });
+
+    function loadMessagesForGroup(groupId) {
+        const username = "{{ username }}";  // Nom d'utilisateur
+        const password = "{{ password }}";  // Mot de passe
+        console.log("username")
+        console.log(username)
+
+        console.log("groupId")
+        console.log(groupId)
+        fetch(`http://127.0.0.1:8080/api/messages/group/${groupId}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Basic ' + btoa(username + ':' + password),
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(messages => {
+            const messagesDiv = document.getElementById('messages');
+            messagesDiv.innerHTML = '';  // Vider les anciens messages avant de recharger
+            messages.forEach(message => {
+                const messageElement = document.createElement('div');
+                messageElement.textContent = `${message.sender}: ${message.content}`;
+                messagesDiv.appendChild(messageElement);
+            });
+        })
+        .catch(error => console.error('Erreur:', error));
+    }
+
+    // Envoyer un message dans le groupe sélectionné
+    document.getElementById('message-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const message = document.getElementById('message').value;
+        console.log("message")
+        console.log(message)
+        const groupId = document.getElementById('group-select').value;  // Obtenir le groupe sélectionné
+
+        fetch('/api/messages/send', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                message: message,
+                groupId: groupId  // Envoyer le message dans le bon groupe
+            })
+        }).then(response => response.json())
+          .then(data => {
+              loadMessagesForGroup(groupId);  // Recharger les messages après envoi
+          });
+
+        document.getElementById('message').value = '';  // Réinitialiser le champ message
+    });
+
+
+
+    // Fonction pour charger les données (messages et utilisateurs connectés)
+    function loadData() {
+        const groupId = document.getElementById('current-group-id').value;
+        console.log("groupId")
+        console.log(groupId)
+        if (groupId) {  // Vérifier si groupId n'est pas vide ou undefined
+            loadMessagesForGroup(groupId);  // Charger les messages uniquement si un groupId est défini
+        }
+        //loadMessages();  // Charger les messages
+        loadUsers();  // Charger les utilisateurs
+        loadConnectedUsers();  // Charger les utilisateurs connectés
+    }
+
+    // Actualiser les données toutes les 3 secondes
+    setInterval(loadData, 3000);
+
+    // Charger les données immédiatement lors du chargement de la page
+    loadData();
+</script>
+
+</body>
+</html>
