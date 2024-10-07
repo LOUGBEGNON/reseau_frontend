@@ -1,8 +1,21 @@
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 import requests
+import socket
 
 app = Flask(__name__)
 app.secret_key = 'votre_cle_secrete'
+
+def get_local_ip():
+    try:
+        # Crée une socket pour connecter au serveur Google's DNS
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+            s.connect(("8.8.8.8", 80))
+            return s.getsockname()[0]
+    except Exception as e:
+        print(f"Error obtaining local IP: {e}")
+        return
+
+local_ip = get_local_ip()
 
 # Route pour la page de connexion ou d'accueil
 @app.route('/')
@@ -28,16 +41,10 @@ def login():
             headers={'Content-Type': 'application/json'}
         )
 
-        print("response")
-        print(response)
-
-        print("response status code")
-        print(response.status_code)
-        print(response.text)
-
         if response.status_code == 200:
             session['username'] = username
             session['password'] = password
+            session['local_ip'] = local_ip
             return redirect(url_for('chat'))
         else:
             return "Échec de l'authentification", 401
@@ -47,17 +54,20 @@ def login():
 # Page de messagerie
 @app.route('/chat')
 def chat():
+    global local_ip
     print(session)
     username = ""
     password = ""
+    local_ip = local_ip
     if 'username' not in session:
         return redirect(url_for('login'))
     if 'username' in session:
         username = session['username']
         password = session['password']
+        local_ip = session['local_ip']
     print(username)
     print(password)
-    return render_template('chat.html', username=username, password=password)
+    return render_template('chat.html', username=username, password=password, local_ip=local_ip)
 
 # Obtenir la liste des utilisateurs connectés
 @app.route('/users')
@@ -80,7 +90,6 @@ def send_message():
     password = session.get('password')  # Récupérer l'utilisateur connecté depuis la session
 
     if not message or not username:
-        print("je suis coincé ici")
         return jsonify({"message": "Données manquantes"}), 400
     
     # Ajouter les informations d'authentification dans la requête

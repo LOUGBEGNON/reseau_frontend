@@ -77,7 +77,7 @@ h1 {
     border-radius: 10px;
     width: 100%; /* Largeur responsive */
     max-width: 800px; /* Largeur maximale pour les grands écrans */
-    height: 115vh; /* Ajuster la hauteur ici */
+    height: 50vh; /* Ajuster la hauteur ici */
     display: flex;
     flex-direction: column;
 }

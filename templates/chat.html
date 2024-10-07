@@ -89,6 +89,7 @@
 <br>
 
 <script>
+    const local_ip = "{{ local_ip }}";
     // Liste des groupes définis localement
     const groups = [
         { id: 'group1', name: 'Groupe 1' },
@@ -219,7 +220,6 @@
         console.log("message")
         console.log(message)
         console.log("group-select")
-        // console.log(document.getElementById('group-select').value);  // Obtenir le groupe sélectionné
 
         fetch('/send_message', {
             method: 'POST',
@@ -232,7 +232,6 @@
             })
         }).then(response => response.json())
           .then(data => {
-<!--              loadMessages();  // Charger à nouveau les messages après envoi-->
               loadMessagesForGroup(groupId);  // Charger à nouveau les messages après envoi
           });
 
@@ -281,8 +280,8 @@
         console.log("username")
         console.log(username)
 
-        console.log("groupId")
-        console.log(groupId)
+        const messagesDiv = document.getElementById('messages');
+
         fetch(`http://127.0.0.1:8080/api/messages/group/${groupId}`, {
             method: 'GET',
             headers: {
@@ -295,12 +294,19 @@
             const messagesDiv = document.getElementById('messages');
             messagesDiv.innerHTML = '';  // Vider les anciens messages avant de recharger
             messages.forEach(message => {
+                const senderName = message.sender === username ? "Vous" : message.sender;  // Remplacer le nom par "Vous" si l'expéditeur est l'utilisateur connecté
                 const messageElement = document.createElement('div');
-                messageElement.textContent = `${message.sender}: ${message.content}`;
+                messageElement.className = 'message';
+                messageElement.textContent = `${senderName}: ${message.content}`;
                 messagesDiv.appendChild(messageElement);
             });
+            // Scroller automatiquement vers le bas pour voir le dernier message
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
         })
-        .catch(error => console.error('Erreur:', error));
+        .catch(error => {
+            console.error('Erreur:', error)
+            messagesDiv.innerHTML = '<div>Error loading messages.</div>';
+         });
     }
 
     // Envoyer un message dans le groupe sélectionné
